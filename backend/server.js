@@ -1,22 +1,34 @@
 import express from "express";
-import dotEnv from "dotenv";
+import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth.routes.js";
 import connectMongoDB from './db/connectMongoDB.js';
 
-dotEnv.config();
+// Load environment variables
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-console.log(process.env.MONGO_URI);
-
+// Middleware to parse JSON and URL-encoded data
 app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 
-app.use("/api/auth",authRoutes); //to parse req.body
+// Routes
+app.use("/api/auth", authRoutes);
 
-var port = 8000;
-app.listen(port, () => {
-    console.log(`server is running on port 8000 ${port}`);
-    connectMongoDB();
-})
+
+// Connect to MongoDB and start the server
+const startServer = async () => {
+    try {
+        await connectMongoDB();
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error("Failed to start the server", error);
+        process.exit(1); // Exit process with failure
+    }
+};
+
+startServer();
